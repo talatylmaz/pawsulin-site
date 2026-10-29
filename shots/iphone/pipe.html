@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>asset pipe</title></head>
+<body>
+<script>
+// Store asset yükleyici köprüsü: aynı origin'deki PNG'leri okuyup
+// üst pencereye (App Store Connect sekmesi) postMessage ile gönderir.
+window.addEventListener('message', async (ev) => {
+  const d = ev.data || {};
+  if (d.cmd !== 'pawsulin-get') return;
+  const out = [];
+  for (const name of d.names) {
+    try {
+      const r = await fetch('./' + name, { cache: 'no-store' });
+      const b = await r.arrayBuffer();
+      out.push({ name: name, type: 'image/png', buf: b });
+    } catch (e) {
+      out.push({ name: name, error: String(e) });
+    }
+  }
+  parent.postMessage({ cmd: 'pawsulin-files', files: out }, '*');
+});
+parent.postMessage({ cmd: 'pawsulin-ready' }, '*');
+</script>
+</body>
+</html>
